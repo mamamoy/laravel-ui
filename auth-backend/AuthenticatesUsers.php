@@ -72,6 +72,9 @@ trait AuthenticatesUsers
         $request->validate([
             $this->username() => 'required|string',
             'password' => 'required|string',
+        ], [
+            'username' => 'Username tidak boleh kosong',
+            'password' => 'Password tidak boleh kosong'
         ]);
     }
 
@@ -111,6 +114,8 @@ trait AuthenticatesUsers
 
         $this->clearLoginAttempts($request);
 
+        $request->session()->flash('success', 'Login berhasil');
+
         if ($response = $this->authenticated($request, $this->guard()->user())) {
             return $response;
         }
@@ -143,7 +148,8 @@ trait AuthenticatesUsers
     protected function sendFailedLoginResponse(Request $request)
     {
         throw ValidationException::withMessages([
-            $this->username() => [trans('auth.failed')],
+            // $this->username() => [trans('auth.failed')],
+            'error' => 'Username atau password salah, silahkan cek kembali',
         ]);
     }
 
@@ -154,7 +160,7 @@ trait AuthenticatesUsers
      */
     public function username()
     {
-        return 'email';
+        return 'username';
     }
 
     /**
@@ -170,6 +176,7 @@ trait AuthenticatesUsers
         $request->session()->invalidate();
 
         $request->session()->regenerateToken();
+        $request->session()->flash('success', 'Logout berhasil');
 
         if ($response = $this->loggedOut($request)) {
             return $response;
